@@ -1,59 +1,254 @@
-import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
-
-class _FetchHelper {
-  String body;
-  String type;
-
-  _FetchHelper(this.body, this.type);
-}
-
 class MovieData {
-  int idMovie;
-  String type;
+  bool adult;
+  String backdropPath;
+  BelongsToCollection belongsToCollection;
+  int budget;
+  List<Genres> genres;
+  String homepage;
+  int id;
+  String imdbId;
+  String originalLanguage;
+  String originalTitle;
+  String overview;
+  double popularity;
+  String posterPath;
+  List<ProductionCompanies> productionCompanies;
+  List<ProductionCountries> productionCountries;
+  String releaseDate;
+  int revenue;
+  int runtime;
+  List<SpokenLanguages> spokenLanguages;
+  String status;
+  String tagline;
   String title;
-  double averageVote;
-  String pathBackdrop;
-  String pathPoster;
-  String releaseData;
-  String language;
-
-  final _keyApi = "a1eea6d03b1f0244d15177fec40aeb61";
+  bool video;
+  double voteAverage;
+  int voteCount;
 
   MovieData(
-      {this.idMovie,
-      this.type,
+      {this.adult,
+      this.backdropPath,
+      this.belongsToCollection,
+      this.budget,
+      this.genres,
+      this.homepage,
+      this.id,
+      this.imdbId,
+      this.originalLanguage,
+      this.originalTitle,
+      this.overview,
+      this.popularity,
+      this.posterPath,
+      this.productionCompanies,
+      this.productionCountries,
+      this.releaseDate,
+      this.revenue,
+      this.runtime,
+      this.spokenLanguages,
+      this.status,
+      this.tagline,
       this.title,
-      this.releaseData,
-      this.pathBackdrop,
-      this.pathPoster,
-      this.language,
-      this.averageVote});
+      this.video,
+      this.voteAverage,
+      this.voteCount});
 
-  Future<MovieData> fetchMovieData(
-      String type, int id, http.Client client) async {
-    final responseBody = await client
-        .get('https://api.themoviedb.org/3/$type/$id?api_key=$_keyApi');
-    final helper = _FetchHelper(responseBody.body, type);
-    return compute(_parseBody, helper);
+  MovieData.fromJson(Map<String, dynamic> map){
+    adult = map['adult'];
+    backdropPath = map['backdrop_path'];
+    belongsToCollection = map['belongs_to_collection'] != null
+        ? new BelongsToCollection.fromJson(map['belongs_to_collection'])
+        : null;
+    budget = map['budget'];
+    if (map['genres'] != null) {
+      genres = new List<Genres>();
+      map['genres'].forEach((v) {
+        genres.add(new Genres.fromJson(v));
+      });
+    }
+    homepage = map['homepage'];
+    id = map['id'];
+    imdbId = map['imdb_id'];
+    originalLanguage = map['original_language'];
+    originalTitle = map['original_title'];
+    overview = map['overview'];
+    popularity = map['popularity'];
+    posterPath = map['poster_path'];
+    if (map['production_companies'] != null) {
+      productionCompanies = new List<ProductionCompanies>();
+      map['production_companies'].forEach((v) {
+        productionCompanies.add(new ProductionCompanies.fromJson(v));
+      });
+    }
+    if (map['production_countries'] != null) {
+      productionCountries = new List<ProductionCountries>();
+      map['production_countries'].forEach((v) {
+        productionCountries.add(new ProductionCountries.fromJson(v));
+      });
+    }
+    releaseDate = map['release_date'];
+    revenue = map['revenue'];
+    runtime = map['runtime'];
+    if (map['spoken_languages'] != null) {
+      spokenLanguages = new List<SpokenLanguages>();
+      map['spoken_languages'].forEach((v) {
+        spokenLanguages.add(new SpokenLanguages.fromJson(v));
+      });
+    }
+    status = map['status'];
+    tagline = map['tagline'];
+    title = map['title'];
+    video = map['video'];
+    voteAverage = map['vote_average'];
+    voteCount = map['vote_count'];
   }
 
-  factory MovieData._fromJson(String type, Map<String, dynamic> json) {
-    return MovieData(
-        type: type,
-        idMovie: json['id'] as int,
-        title: json['title'] as String,
-        averageVote: json['vote_average'] as double,
-        language: json['original_language'] as String,
-        pathBackdrop: json['backdrop_path'] as String,
-        releaseData: json['release_date'] as String,
-        pathPoster: json['poster_path'] as String);
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['adult'] = this.adult;
+    data['backdrop_path'] = this.backdropPath;
+    if (this.belongsToCollection != null) {
+      data['belongs_to_collection'] = this.belongsToCollection.toJson();
+    }
+    data['budget'] = this.budget;
+    if (this.genres != null) {
+      data['genres'] = this.genres.map((v) => v.toJson()).toList();
+    }
+    data['homepage'] = this.homepage;
+    data['id'] = this.id;
+    data['imdb_id'] = this.imdbId;
+    data['original_language'] = this.originalLanguage;
+    data['original_title'] = this.originalTitle;
+    data['overview'] = this.overview;
+    data['popularity'] = this.popularity;
+    data['poster_path'] = this.posterPath;
+    if (this.productionCompanies != null) {
+      data['production_companies'] =
+          this.productionCompanies.map((v) => v.toJson()).toList();
+    }
+    if (this.productionCountries != null) {
+      data['production_countries'] =
+          this.productionCountries.map((v) => v.toJson()).toList();
+    }
+    data['release_date'] = this.releaseDate;
+    data['revenue'] = this.revenue;
+    data['runtime'] = this.runtime;
+    if (this.spokenLanguages != null) {
+      data['spoken_languages'] =
+          this.spokenLanguages.map((v) => v.toJson()).toList();
+    }
+    data['status'] = this.status;
+    data['tagline'] = this.tagline;
+    data['title'] = this.title;
+    data['video'] = this.video;
+    data['vote_average'] = this.voteAverage;
+    data['vote_count'] = this.voteCount;
+    return data;
+  }
+}
+
+class BelongsToCollection {
+  int id;
+  String name;
+  String posterPath;
+  String backdropPath;
+
+  BelongsToCollection({this.id, this.name, this.posterPath, this.backdropPath});
+
+  BelongsToCollection.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+    posterPath = json['poster_path'];
+    backdropPath = json['backdrop_path'];
   }
 
-  static MovieData _parseBody(_FetchHelper arg) {
-    final p = json.decode(arg.body);
-    return MovieData._fromJson(arg.type, p as Map<String, dynamic>);
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['name'] = this.name;
+    data['poster_path'] = this.posterPath;
+    data['backdrop_path'] = this.backdropPath;
+    return data;
+  }
+}
+
+class Genres {
+  int id;
+  String name;
+
+  Genres({this.id, this.name});
+
+  Genres.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    name = json['name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['name'] = this.name;
+    return data;
+  }
+}
+
+class ProductionCompanies {
+  int id;
+  String logoPath;
+  String name;
+  String originCountry;
+
+  ProductionCompanies({this.id, this.logoPath, this.name, this.originCountry});
+
+  ProductionCompanies.fromJson(Map<String, dynamic> json) {
+    id = json['id'];
+    logoPath = json['logo_path'];
+    name = json['name'];
+    originCountry = json['origin_country'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['id'] = this.id;
+    data['logo_path'] = this.logoPath;
+    data['name'] = this.name;
+    data['origin_country'] = this.originCountry;
+    return data;
+  }
+}
+
+class ProductionCountries {
+  String iso31661;
+  String name;
+
+  ProductionCountries({this.iso31661, this.name});
+
+  ProductionCountries.fromJson(Map<String, dynamic> json) {
+    iso31661 = json['iso_3166_1'];
+    name = json['name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['iso_3166_1'] = this.iso31661;
+    data['name'] = this.name;
+    return data;
+  }
+}
+
+class SpokenLanguages {
+  String iso6391;
+  String name;
+
+  SpokenLanguages({this.iso6391, this.name});
+
+  SpokenLanguages.fromJson(Map<String, dynamic> json) {
+    iso6391 = json['iso_639_1'];
+    name = json['name'];
+  }
+
+  Map<String, dynamic> toJson() {
+    final Map<String, dynamic> data = new Map<String, dynamic>();
+    data['iso_639_1'] = this.iso6391;
+    data['name'] = this.name;
+    return data;
   }
 }
