@@ -5,12 +5,9 @@ import 'package:flutter_svg/svg.dart';
 import 'package:movie_app/repository/MovieData.dart';
 import 'package:movie_app/repository/RepositoryMovieData.dart';
 
-class _ItemView extends State<ItemView> {
-  Future<MovieData> _fetcher;
-
-  _ItemView(var id, var type, final client) {
-    _fetcher = RepositoryMovieData(client).fetchMovieData(type, id);
-  }
+class _ItemView {
+  final MovieData _data;
+  _ItemView(this._data);
 
   Widget _imageBackdrop(String _imagePath) {
     return ClipRRect(
@@ -32,7 +29,7 @@ class _ItemView extends State<ItemView> {
   }
 
   Widget _firstRowTextItem(
-      double _averageVote, String _title, BuildContext contex) {
+      double _averageVote, String _title, BuildContext context) {
     return Container(
       padding: EdgeInsets.fromLTRB(2, 0, 2, 0),
       child: Row(textDirection: TextDirection.ltr, children: <Widget>[
@@ -90,44 +87,26 @@ class _ItemView extends State<ItemView> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _fetcher,
-      builder: (BuildContext context, AsyncSnapshot<MovieData> snapshot) {
-        if (snapshot.hasData) {
-          var _data = snapshot.data;
-          return Container(
-              constraints: BoxConstraints.tightFor(height: 330, width: 500),
-              child: Card(
-                margin: EdgeInsets.all(16),
-                elevation: 5,
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: <Widget>[
-                      _imageBackdrop(_data.backdropPath),
-                      _firstRowTextItem(
-                          _data.voteAverage, _data.title, context),
-                      _secondRowTextItem(
-                          _data.originalLanguage, _data.releaseDate, context)
-                    ]),
-              ));
-        } else {
-          return Container(
-              constraints: BoxConstraints.tightFor(height: 330),
-              child: Card(
-                  margin: EdgeInsets.all(16),
-                  elevation: 5,
-                  child: Center(child: CircularProgressIndicator())));
-        }
-      },
-    );
+    return Container(
+        constraints: BoxConstraints.tightFor(height: 330, width: 500),
+        child: Card(
+          margin: EdgeInsets.all(16),
+          elevation: 5,
+          child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                _imageBackdrop(_data.backdropPath),
+                _firstRowTextItem(_data.voteAverage, _data.title, context),
+                _secondRowTextItem(
+                    _data.originalLanguage, _data.releaseDate, context)
+              ]),
+        ));
   }
 }
 
-class ItemView extends StatefulWidget {
-  final id, type, client;
-
-  ItemView(this.id, this.type, this.client);
-
+class ItemView extends StatelessWidget {
+  final data;
+  ItemView(this.data);
   @override
-  createState() => _ItemView(this.id, this.type, this.client);
+  Widget build(BuildContext context) => _ItemView(this.data).build(context);
 }
