@@ -14,7 +14,7 @@ class _ItemView {
         borderRadius: BorderRadius.only(
             topLeft: Radius.circular(4), topRight: Radius.circular(4)),
         child: CachedNetworkImage(
-          imageUrl: RepositoryMovieData.getImageLink(500, _imagePath),
+          imageUrl: RepositoryMovieData.getImageLink("w500", _imagePath),
           placeholder: (context, url) => Directionality(
               textDirection: TextDirection.ltr,
               child: Container(
@@ -32,13 +32,12 @@ class _ItemView {
       double _averageVote, String _title, BuildContext context) {
     return Container(
       padding: EdgeInsets.fromLTRB(2, 0, 2, 0),
-      child: Row(textDirection: TextDirection.ltr, children: <Widget>[
+      child: Row(children: <Widget>[
         SvgPicture.asset(
           'asset/ic_stars_24px.svg',
           color: Theme.of(context).primaryColor,
         ),
         Text("$_averageVote",
-            textDirection: TextDirection.ltr,
             style: Theme.of(context)
                 .textTheme
                 .headline
@@ -53,7 +52,7 @@ class _ItemView {
             style: Theme.of(context).textTheme.headline,
             overflow: TextOverflow.ellipsis,
             maxLines: 3,
-            textDirection: TextDirection.ltr,
+            key: Key("title_movie"),
           ),
         )
       ]),
@@ -65,42 +64,40 @@ class _ItemView {
     return Container(
         padding: EdgeInsets.fromLTRB(2, 0, 2, 8),
         child: Row(
-          textDirection: TextDirection.ltr,
           children: <Widget>[
             Expanded(
                 child: Container(
               padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
               child: Text("Language: $_language",
-                  textDirection: TextDirection.ltr,
                   style: Theme.of(context).textTheme.caption),
             )),
             Expanded(
                 child: Container(
               padding: EdgeInsets.fromLTRB(8, 0, 8, 0),
               child: Text("Release Date: $_releaseData",
-                  textDirection: TextDirection.ltr,
                   style: Theme.of(context).textTheme.caption),
             )),
           ],
         ));
   }
 
-  @override
   Widget build(BuildContext context) {
-    return Container(
-        constraints: BoxConstraints.tightFor(height: 330, width: 500),
-        child: Card(
-          margin: EdgeInsets.all(16),
-          elevation: 5,
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                _imageBackdrop(_data.backdropPath),
-                _firstRowTextItem(_data.voteAverage, _data.title, context),
-                _secondRowTextItem(
-                    _data.originalLanguage, _data.releaseDate, context)
-              ]),
-        ));
+    return Directionality(
+        textDirection: TextDirection.ltr,
+        child: Container(
+            constraints: BoxConstraints.tightFor(height: 330, width: 500),
+            child: Card(
+              margin: EdgeInsets.all(16),
+              elevation: 5,
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    _imageBackdrop(_data.backdropPath),
+                    _firstRowTextItem(_data.voteAverage, _data.title, context),
+                    _secondRowTextItem(
+                        _data.originalLanguage, _data.releaseDate, context)
+                  ]),
+            )));
   }
 }
 

@@ -34,7 +34,6 @@ class _ListItemView extends State<ListItemView> {
             if (snapshot.hasData) {
               ListMovieData data = snapshot.data;
               return Center(child: _listViewBuilder(data));
-              // return ItemView(data.results[0].id, type, client);
             }
             continue nodata;
           nodata:

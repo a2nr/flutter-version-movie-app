@@ -31,8 +31,10 @@ dependencies:
 
 dev_dependencies:
   test: ^1.9.4
-  image_test_utils: ^1.0.0
+  mockito: ^4.0.0
   flutter_test:
+    sdk: flutter
+  flutter_driver:
     sdk: flutter
 
 
