@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart';
 import 'package:http/testing.dart';
-import 'package:image_test_utils/image_test_utils.dart';
 import 'package:movie_app/repository/util/ConstMovie.dart';
 import 'package:movie_app/view/ListItemView.dart';
 
@@ -53,15 +52,13 @@ void main() {
       final sendResponse = json.encode(mapJson);
       return Response(sendResponse, 200);
     });
-    await provideMockedNetworkImages(() async {
-      await tester.pumpWidget(
-          ListItemView(TypeMovie.MOVIE, CategoriesMovie.TRENDING, clientMock));
+    await tester.pumpWidget(
+        ListItemView(TypeMovie.MOVIE, CategoriesMovie.TRENDING, clientMock));
 
-      await tester.pumpAndSettle();
-      var title = find.text("Maleficent: Mistress of Evil");
-      expect(title, findsOneWidget);
-      title = find.text("Joker");
-      expect(title, findsOneWidget);
-    });
+    await tester.pumpAndSettle();
+    var title = find.text("Maleficent: Mistress of Evil");
+    expect(title, findsOneWidget);
+    title = find.text("Joker");
+    expect(title, findsOneWidget);
   });
 }

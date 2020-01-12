@@ -3,51 +3,98 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:movie_app/repository/MovieData.dart';
 import 'package:movie_app/repository/RepositoryMovieData.dart';
 import 'package:transparent_image/transparent_image.dart';
 
-class _DetailItemView extends State<DetailItemView> {
-  final client;
-  final type;
-  final id;
+class ImageLoader {
+  final String _url;
+  final Completer<ImageProvider> completer = Completer<ImageProvider>();
+  ImageLoader(this._url);
 
-  _DetailItemView(this.type, this.id, this.client);
+  Widget build(BuildContext context) {
+    return CachedNetworkImage(
+      imageUrl: _url,
+      imageBuilder: (c, i) {
+        completer.complete(i);
+        return CircularProgressIndicator(
+            backgroundColor: Theme.of(context).primaryColorLight,
+            );
+      },
+      placeholder: (c, s) => CircularProgressIndicator(
+          backgroundColor: Theme.of(context).primaryColorLight,
+          ),
+      errorWidget: (c, s, o) {
+        completer.completeError(o);
+        return CircularProgressIndicator(
+            backgroundColor: Theme.of(context).primaryColorLight,
+            );
+      },
+    );
+  }
+}
 
-  Widget _loadedDataWidget(
-      BuildContext context, ImageProvider image, MovieData data) {
-    var expandedHeight;
-    if(MediaQuery.of(context) != null){
-     expandedHeight = (1.5 * MediaQuery.of(context).size.width);
+class _MainDetailView extends State<MainDetailView> {
+  final MovieData data;
+  double paddingBottom=0;
+  double expanded=0;
+  double expandedHeight=0;
+  ImageLoader imageLoader;
+  Widget loaderWidget = Image(
+    image: Image.memory(kTransparentImage).image,
+    fit: BoxFit.fitWidth,
+  );
+
+  _MainDetailView(this.data) {
+    imageLoader =
+        ImageLoader(RepositoryMovieData.getImageLink("w500", data.posterPath));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    expandedHeight = 2 * kToolbarHeight;
+    paddingBottom = 0;
+    expanded = 0;
+    imageLoader.completer.future.then((ImageProvider image) {
+      setState(() {
+        paddingBottom = (kToolbarHeight * 5);
+        expanded =kToolbarHeight + 2;
+        loaderWidget = Image(
+          image: image,
+          fit: BoxFit.fitWidth,
+        );
+      });
+    },
+    onError: (o,s){
+      print("$o:$s");
+      setState(() {
+      expandedHeight = 0;
+      expanded=0;
+      });
+    });
+    loaderWidget = Center(
+      child: Center(child: imageLoader.build(context)),
+    );
+  }
+
+  Widget build(BuildContext context) {
+    if (expanded != 0) {
+      expandedHeight = (1.5 * MediaQuery.of(context).size.width);
     }
-    else{
-      expandedHeight = (1.5 * 560);
-    }
-    double paddingBottom;
-    double expanded;
-    Widget posterImage;
-    if (image == null) {
-      paddingBottom = 0;
-      expanded = 0;
-      posterImage = Image.memory(kTransparentImage);
-    } else {
-      paddingBottom = expandedHeight - (kToolbarHeight * 5);
-      expanded = expandedHeight + kToolbarHeight + 2;
-      posterImage = Image(
-        image: image,
-        fit: BoxFit.fitHeight,
-      );
-    }
+
     return CustomScrollView(slivers: <Widget>[
       SliverAppBar(
           title: Text(
             data.title,
             overflow: TextOverflow.fade,
+            key: Key("main_title"),
           ),
           pinned: true,
           floating: false,
           snap: false,
-          expandedHeight: expanded,
+          expandedHeight:  expandedHeight + expanded,
           actions: <Widget>[
             IconButton(
               padding: EdgeInsets.fromLTRB(0, 0, 16, 0),
@@ -72,12 +119,12 @@ class _DetailItemView extends State<DetailItemView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               SizedBox(height: kToolbarHeight + 10),
-              posterImage,
+              loaderWidget
             ],
           ))),
       SliverToBoxAdapter(
           child: Container(
-        padding: EdgeInsets.only(top: kToolbarHeight, bottom: paddingBottom),
+        padding: EdgeInsets.only(top: kToolbarHeight, bottom: expandedHeight - paddingBottom),
         child: Table(
           children: [
             _tableRow("Vote Average:  ", data.voteAverage.toString()),
@@ -114,37 +161,27 @@ class _DetailItemView extends State<DetailItemView> {
               style: Theme.of(context).textTheme.caption,
             )),
       ]);
-  Widget _loadImageWidget(BuildContext context, MovieData data) {
-    Image image = Image.network(
-        RepositoryMovieData.getImageLink("w500", data.posterPath));
-    Completer<Image> completer = new Completer<Image>();
-    image.image.resolve(new ImageConfiguration()).addListener(
-        ImageStreamListener(
-            (ImageInfo info, bool _) => completer.complete(image)));
-    return FutureBuilder(
-      future: completer.future,
-      builder: (context, snapshot) {
-        switch (snapshot.connectionState) {
-          case ConnectionState.done:
-            if (snapshot.hasData) {
-              final imageData = snapshot.data;
-              return _loadedDataWidget(context, imageData.image, data);
-            }
-            continue def;
-          def:
-          case ConnectionState.none:{
-            Image imageEmpty = Image.memory(kTransparentImage);
-            return _loadedDataWidget(context, imageEmpty.image, data);
-          }
-          default:
-            return _loadingImageWidget(context, "");
-        }
-        return _loadingImageWidget(context, "");
-      },
-    );
-  }
+}
 
-  Widget _loadingImageWidget(BuildContext context, String state) {
+class MainDetailView extends StatefulWidget {
+  final MovieData _data;
+  MainDetailView(this._data);
+  @override
+  State<StatefulWidget> createState() {
+    return _MainDetailView(_data);
+  }
+}
+
+class _DetailItemView extends State<DetailItemView> {
+  final client;
+  final type;
+  final id;
+
+  _DetailItemView(this.type, this.id, this.client);
+  Widget _loadingWidget(
+    BuildContext context,
+    String state,
+  ) {
     var msg = "";
     Widget flexSpace;
     switch (state) {
@@ -180,30 +217,31 @@ class _DetailItemView extends State<DetailItemView> {
     );
   }
 
-  Widget _futureBuilder(BuildContext context) => FutureBuilder(
-      future: RepositoryMovieData(client).fetchMovieData(type, id),
-      builder: (context, snapshot) {
-        switch (snapshot.connectionState) {
-          case ConnectionState.done:
-            if (snapshot.hasData) {
-              MovieData data = snapshot.data;
-              return _loadImageWidget(context, data);
-            }
-            continue def;
-          def:
-          case ConnectionState.none:
-            return _loadingImageWidget(context, "error");
-          default:
-            return _loadingImageWidget(context, "");
-        }
-      });
-
   @override
   Widget build(BuildContext context) {
     return Directionality(
         textDirection: TextDirection.ltr,
         child: Scaffold(
-          body: _futureBuilder(context),
+          body: FutureBuilder(
+              future: RepositoryMovieData(client).fetchMovieData(type, id),
+              builder: (context, snapshot) {
+                switch (snapshot.connectionState) {
+                  case ConnectionState.done:
+                    if (snapshot.hasData) {
+                      MovieData data = snapshot.data;
+                      print("FutureBuilder Get data: $data");
+                      // return _loadImageWidget(context, data);
+                      return MainDetailView(data);
+                    }
+                    continue def;
+                  def:
+                  case ConnectionState.none:
+                    return _loadingWidget(context, "error");
+                  default:
+                    return _loadingWidget(context, "");
+                }
+                return _loadingWidget(context, "error");
+              }),
         ));
   }
 }
