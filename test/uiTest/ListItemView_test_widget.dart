@@ -52,8 +52,10 @@ void main() {
       final sendResponse = json.encode(mapJson);
       return Response(sendResponse, 200);
     });
-    await tester.pumpWidget(
-        ListItemView(TypeMovie.MOVIE, CategoriesMovie.TRENDING, clientMock));
+    await tester.pumpWidget(ListItemViewFactory.widget(
+        type: TypeMovie.MOVIE,
+        categories: CategoriesMovie.TRENDING,
+        client: clientMock));
 
     await tester.pumpAndSettle();
     var title = find.text("Maleficent: Mistress of Evil");

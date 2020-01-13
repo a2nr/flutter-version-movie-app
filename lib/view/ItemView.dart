@@ -104,9 +104,19 @@ class _ItemView {
                     children: <Widget>[
                       _imageBackdrop(_data.backdropPath),
                       _firstRowTextItem(
-                          _data.voteAverage, _data.title, context),
+                          _data.voteAverage,
+                          _data.title != null
+                              ? _data.title
+                              : _data.name != null
+                                  ? _data.name
+                                  : _data.originalName!=null?_data.originalName:"Unknown",
+                          context),
                       _secondRowTextItem(
-                          _data.originalLanguage, _data.releaseDate, context)
+                          _data.originalLanguage,
+                          _data.releaseDate != null
+                              ? _data.releaseDate
+                              : _data.firstAirDate,
+                          context)
                     ]),
               ),
               onPressed: () {

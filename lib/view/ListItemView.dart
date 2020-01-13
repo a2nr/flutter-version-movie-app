@@ -1,44 +1,83 @@
 import 'package:flutter/material.dart';
-import 'package:movie_app/repository/ListMovieData.dart';
+import 'package:http/http.dart';
 import 'package:movie_app/repository/MovieData.dart';
 import 'package:movie_app/repository/RepositoryMovieData.dart';
-import 'package:movie_app/repository/util/ConstMovie.dart';
 import 'package:movie_app/view/ItemView.dart';
 import 'package:paging/paging.dart';
 
-class _ListItemView extends State<ListItemView> {
-  final type, categorie, client;
+class ListItemViewFactory {
+  static Widget widget({
+    @required type,
+    @required categories,
+    @required client,
+  }) =>
+      _InheritageListItemView(
+        categories: categories,
+        client: client,
+        type: type,
+        child: _MainListItemView(),
+      );
+}
 
-  _ListItemView(this.type, this.categorie, this.client);
+class _InheritageListItemView extends InheritedWidget {
+  final String type;
+  final String categories;
+  final Client client;
 
-  Widget _listViewBuilder(ListMovieData data) {
-    return Pagination<MovieData>(
-        scrollDirection: Axis.vertical,
-        progress: LinearProgressIndicator(),
-        pageBuilder: (curentPage) async {
-          final data = await RepositoryMovieData(client)
-              .fetchListMovieData(type, categorie, curentPage + 1);
-          return data.results;
-        },
-        itemBuilder: (index, data) {
-          return ItemView(
-            data,
-            type: type,
-            client: client,
-          );
-        });
+  const _InheritageListItemView({
+    Key key,
+    @required this.type,
+    @required this.categories,
+    @required this.client,
+    @required Widget child,
+  })  : assert(type != null),
+        assert(child != null),
+        super(key: key, child: child);
+
+  static _InheritageListItemView of(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<_InheritageListItemView>();
   }
 
+  @override
+  bool updateShouldNotify(_InheritageListItemView oldWidget) {
+    if (type != oldWidget.type) return true;
+    if (categories != oldWidget.categories) return true;
+    return false;
+  }
+}
+
+class _ListItemView extends State<_MainListItemView> {
   Widget _futureBuilderListMovie(BuildContext context) {
+    final _InheritageListItemView param = _InheritageListItemView.of(context);
+
     return FutureBuilder(
-      future: RepositoryMovieData(client)
-          .fetchListMovieData(type, CategoriesMovie.TRENDING, 1),
+      future: RepositoryMovieData(param.client)
+          .fetchListMovieData(param.type,param.categories, 1),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.done:
             if (snapshot.hasData) {
-              ListMovieData data = snapshot.data;
-              return Center(child: _listViewBuilder(data));
+              return Center(
+                  child: Pagination<MovieData>(
+                      onError: (e) {
+                        print("$e");
+                      },
+                      scrollDirection: Axis.vertical,
+                      progress: LinearProgressIndicator(),
+                      pageBuilder: (curentPage) async {
+                        final data = await RepositoryMovieData(param.client)
+                            .fetchListMovieData(
+                                param.type, param.categories, curentPage + 1);
+                        return data.results;
+                      },
+                      itemBuilder: (index, data) {
+                        return ItemView(
+                          data,
+                          type: param.type,
+                          client: param.client,
+                        );
+                      }));
             }
             continue nodata;
           nodata:
@@ -63,10 +102,7 @@ class _ListItemView extends State<ListItemView> {
   }
 }
 
-class ListItemView extends StatefulWidget {
-  final type, categories, client;
-  ListItemView(this.type, this.categories, this.client);
+class _MainListItemView extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() =>
-      _ListItemView(this.type, this.categories, this.client);
+  State<StatefulWidget> createState() => _ListItemView();
 }

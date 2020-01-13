@@ -86,7 +86,7 @@ class _MainDetailView extends State<MainDetailView> {
     return CustomScrollView(slivers: <Widget>[
       SliverAppBar(
           title: Text(
-            data.title,
+            data.title != null ? data.title : data.name,
             overflow: TextOverflow.fade,
             key: Key("main_title"),
           ),
@@ -127,13 +127,35 @@ class _MainDetailView extends State<MainDetailView> {
             top: kToolbarHeight, bottom: expandedHeight - paddingBottom),
         child: Table(
           children: [
-            _tableRow("Vote Average:  ", data.voteAverage.toString()),
-            _tableRow("Popularity:  ", data.popularity.toString()),
-            _tableRow("Title:  ", data.title),
+            // _tableRow("Vote Average:  ", data.voteAverage.toString()),
+            _tableRow(
+                "Vote Average:  ",
+                data.voteAverage != null
+                    ? data.voteAverage.toString()
+                    : "Unknown"),
+            _tableRow(
+                "Popularity:  ",
+                data.popularity != null
+                    ? data.popularity.toString()
+                    : "Unknown"),
+            _tableRow(
+                "Title:  ",
+                data.title != null
+                    ? data.title
+                    : (data.name != null ? data.name : "Unknown")),
             _tableRow("Overview:  ", data.overview, height: kToolbarHeight * 2),
-            _tableRow("Original Title:  ", data.originalTitle),
-            _tableRow("Original Languages:  ", data.originalLanguage),
-            _tableRow("Spoken Languages:  ", data.spokenLanguages[0].name),
+            _tableRow(
+                "Original Title:  ",
+                data.originalTitle != null
+                    ? data.originalTitle
+                    : data.originalName != null
+                        ? data.originalName
+                        : "Unknown"),
+            _tableRow(
+                "Original Languages:  ",
+                data.originalLanguage != null
+                    ? data.originalLanguage
+                    : "Unknown"),
           ],
           defaultVerticalAlignment: TableCellVerticalAlignment.top,
           columnWidths: {1: FractionColumnWidth(.8)},
@@ -206,10 +228,10 @@ class _DetailItemView extends State<DetailItemView> {
           SliverAppBar(
             floating: false,
             pinned: true,
-            expandedHeight: kToolbarHeight+10,
+            expandedHeight: kToolbarHeight + 10,
             flexibleSpace: FlexibleSpaceBar(
                 background: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 SizedBox(height: kToolbarHeight + 10),
                 Center(child: flexSpace),
