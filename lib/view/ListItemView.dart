@@ -13,15 +13,20 @@ class _ListItemView extends State<ListItemView> {
 
   Widget _listViewBuilder(ListMovieData data) {
     return Pagination<MovieData>(
-      scrollDirection: Axis.vertical,
-      progress: LinearProgressIndicator(),
-      pageBuilder: (curentPage) async {
-        final data = await RepositoryMovieData(client)
-            .fetchListMovieData(type, categorie, curentPage + 1);
-        return data.results;
-      },
-      itemBuilder: (index, data) => ItemView(data),
-    );
+        scrollDirection: Axis.vertical,
+        progress: LinearProgressIndicator(),
+        pageBuilder: (curentPage) async {
+          final data = await RepositoryMovieData(client)
+              .fetchListMovieData(type, categorie, curentPage + 1);
+          return data.results;
+        },
+        itemBuilder: (index, data) {
+          return ItemView(
+            data,
+            type: type,
+            client: client,
+          );
+        });
   }
 
   Widget _futureBuilderListMovie(BuildContext context) {
@@ -53,8 +58,8 @@ class _ListItemView extends State<ListItemView> {
   @override
   Widget build(BuildContext context) {
     return Directionality(
-      textDirection: TextDirection.ltr,
-      child: _futureBuilderListMovie(context));
+        textDirection: TextDirection.ltr,
+        child: _futureBuilderListMovie(context));
   }
 }
 

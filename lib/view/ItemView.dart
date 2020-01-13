@@ -2,12 +2,16 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:http/http.dart';
 import 'package:movie_app/repository/MovieData.dart';
 import 'package:movie_app/repository/RepositoryMovieData.dart';
+import 'package:movie_app/view/DetailItemView.dart';
 
 class _ItemView {
   final MovieData _data;
-  _ItemView(this._data);
+  final Client _client;
+  final String _type;
+  _ItemView(this._data, this._type, this._client);
 
   Widget _imageBackdrop(String _imagePath) {
     return ClipRRect(
@@ -15,6 +19,10 @@ class _ItemView {
             topLeft: Radius.circular(4), topRight: Radius.circular(4)),
         child: CachedNetworkImage(
           imageUrl: RepositoryMovieData.getImageLink("w500", _imagePath),
+          imageBuilder: (c, image) => Image(
+            image: image,
+            fit: BoxFit.fitWidth,
+          ),
           placeholder: (context, url) => Directionality(
               textDirection: TextDirection.ltr,
               child: Container(
@@ -85,25 +93,40 @@ class _ItemView {
     return Directionality(
         textDirection: TextDirection.ltr,
         child: Container(
-            constraints: BoxConstraints.tightFor(height: 330, width: 500),
-            child: Card(
-              margin: EdgeInsets.all(16),
-              elevation: 5,
-              child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    _imageBackdrop(_data.backdropPath),
-                    _firstRowTextItem(_data.voteAverage, _data.title, context),
-                    _secondRowTextItem(
-                        _data.originalLanguage, _data.releaseDate, context)
-                  ]),
+            constraints: BoxConstraints.tightFor(height: 300, width: 500),
+            child: FlatButton(
+              key: Key("Clickable_ItemView"),
+              child: Card(
+                margin: EdgeInsets.all(16),
+                elevation: 5,
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      _imageBackdrop(_data.backdropPath),
+                      _firstRowTextItem(
+                          _data.voteAverage, _data.title, context),
+                      _secondRowTextItem(
+                          _data.originalLanguage, _data.releaseDate, context)
+                    ]),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          DetailItemView(_type, _data.id, _client)),
+                );
+              },
             )));
   }
 }
 
 class ItemView extends StatelessWidget {
-  final data;
-  ItemView(this.data);
+  final MovieData _data;
+  final String type;
+  final Client client;
+  ItemView(this._data, {this.type, this.client});
   @override
-  Widget build(BuildContext context) => _ItemView(this.data).build(context);
+  Widget build(BuildContext context) =>
+      _ItemView(this._data, this.type, this.client).build(context);
 }

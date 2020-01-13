@@ -38,8 +38,6 @@ void main() {
       expect(text, findsOneWidget);
       text = find.text(mapJsonResponse["original_title"]);
       expect(text, findsOneWidget);
-      // final title = find.byKey(Key("main_title"));
-      // expect(mapJsonResponse["title"], title);
     });
   });
 }

@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:http/http.dart';
 import 'package:movie_app/repository/MovieData.dart';
 import 'package:movie_app/repository/RepositoryMovieData.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -17,19 +17,19 @@ class ImageLoader {
     return CachedNetworkImage(
       imageUrl: _url,
       imageBuilder: (c, i) {
-        completer.complete(i);
-        return CircularProgressIndicator(
-            backgroundColor: Theme.of(context).primaryColorLight,
-            );
-      },
-      placeholder: (c, s) => CircularProgressIndicator(
+        if (!completer.isCompleted) completer.complete(i);
+        return LinearProgressIndicator(
           backgroundColor: Theme.of(context).primaryColorLight,
-          ),
+        );
+      },
+      placeholder: (c, s) => LinearProgressIndicator(
+        backgroundColor: Theme.of(context).primaryColorLight,
+      ),
       errorWidget: (c, s, o) {
-        completer.completeError(o);
-        return CircularProgressIndicator(
-            backgroundColor: Theme.of(context).primaryColorLight,
-            );
+        if (!completer.isCompleted) completer.completeError(o);
+        return LinearProgressIndicator(
+          backgroundColor: Theme.of(context).primaryColorLight,
+        );
       },
     );
   }
@@ -37,9 +37,9 @@ class ImageLoader {
 
 class _MainDetailView extends State<MainDetailView> {
   final MovieData data;
-  double paddingBottom=0;
-  double expanded=0;
-  double expandedHeight=0;
+  double paddingBottom = 0;
+  double expanded = 0;
+  double expandedHeight = 0;
   ImageLoader imageLoader;
   Widget loaderWidget = Image(
     image: Image.memory(kTransparentImage).image,
@@ -54,24 +54,23 @@ class _MainDetailView extends State<MainDetailView> {
   @override
   void initState() {
     super.initState();
-    expandedHeight = 2 * kToolbarHeight;
+    expandedHeight = kToolbarHeight + 10;
     paddingBottom = 0;
     expanded = 0;
     imageLoader.completer.future.then((ImageProvider image) {
       setState(() {
         paddingBottom = (kToolbarHeight * 5);
-        expanded =kToolbarHeight + 2;
+        expanded = kToolbarHeight + 2;
         loaderWidget = Image(
           image: image,
           fit: BoxFit.fitWidth,
         );
       });
-    },
-    onError: (o,s){
+    }, onError: (o, s) {
       print("$o:$s");
       setState(() {
-      expandedHeight = 0;
-      expanded=0;
+        expandedHeight = 0;
+        expanded = 0;
       });
     });
     loaderWidget = Center(
@@ -94,7 +93,7 @@ class _MainDetailView extends State<MainDetailView> {
           pinned: true,
           floating: false,
           snap: false,
-          expandedHeight:  expandedHeight + expanded,
+          expandedHeight: expandedHeight + expanded,
           actions: <Widget>[
             IconButton(
               padding: EdgeInsets.fromLTRB(0, 0, 16, 0),
@@ -107,7 +106,7 @@ class _MainDetailView extends State<MainDetailView> {
           ],
           leading: IconButton(
             onPressed: () {
-              print("Back clicked!");
+              Navigator.pop(context);
             },
             icon: Icon(
               Icons.arrow_back,
@@ -124,7 +123,8 @@ class _MainDetailView extends State<MainDetailView> {
           ))),
       SliverToBoxAdapter(
           child: Container(
-        padding: EdgeInsets.only(top: kToolbarHeight, bottom: expandedHeight - paddingBottom),
+        padding: EdgeInsets.only(
+            top: kToolbarHeight, bottom: expandedHeight - paddingBottom),
         child: Table(
           children: [
             _tableRow("Vote Average:  ", data.voteAverage.toString()),
@@ -173,11 +173,11 @@ class MainDetailView extends StatefulWidget {
 }
 
 class _DetailItemView extends State<DetailItemView> {
-  final client;
-  final type;
-  final id;
+  final Client _client;
+  final String _type;
+  final int _id;
 
-  _DetailItemView(this.type, this.id, this.client);
+  _DetailItemView(this._type, this._id, this._client);
   Widget _loadingWidget(
     BuildContext context,
     String state,
@@ -187,14 +187,15 @@ class _DetailItemView extends State<DetailItemView> {
     switch (state) {
       case "error":
         msg = "Check your connection !";
-        flexSpace = Icon(
-          Icons.broken_image,
-          color: Theme.of(context).primaryColorLight,
-        );
+        // flexSpace = Icon(
+        //   Icons.broken_image,
+        //   color: Theme.of(context).primaryColorLight,
+        // );
+        flexSpace = SizedBox();
         break;
       default:
         msg = "Loading...";
-        flexSpace = CircularProgressIndicator(
+        flexSpace = LinearProgressIndicator(
           backgroundColor: Theme.of(context).primaryColorLight,
         );
         break;
@@ -205,9 +206,15 @@ class _DetailItemView extends State<DetailItemView> {
           SliverAppBar(
             floating: false,
             pinned: true,
-            expandedHeight: 150,
-            flexibleSpace:
-                FlexibleSpaceBar(background: Center(child: flexSpace)),
+            expandedHeight: kToolbarHeight+10,
+            flexibleSpace: FlexibleSpaceBar(
+                background: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                SizedBox(height: kToolbarHeight + 10),
+                Center(child: flexSpace),
+              ],
+            )),
           )
         ];
       },
@@ -223,7 +230,7 @@ class _DetailItemView extends State<DetailItemView> {
         textDirection: TextDirection.ltr,
         child: Scaffold(
           body: FutureBuilder(
-              future: RepositoryMovieData(client).fetchMovieData(type, id),
+              future: RepositoryMovieData(_client).fetchMovieData(_type, _id),
               builder: (context, snapshot) {
                 switch (snapshot.connectionState) {
                   case ConnectionState.done:
@@ -247,11 +254,11 @@ class _DetailItemView extends State<DetailItemView> {
 }
 
 class DetailItemView extends StatefulWidget {
-  final client;
-  final type;
-  final id;
-  DetailItemView(this.type, this.id, this.client);
+  final Client _client;
+  final String _type;
+  final int _id;
+  DetailItemView(this._type, this._id, this._client);
   @override
   State<StatefulWidget> createState() =>
-      _DetailItemView(this.type, this.id, this.client);
+      _DetailItemView(this._type, this._id, this._client);
 }
