@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:movie_app/repository/ListMovieData.dart';
 import 'package:movie_app/repository/MovieData.dart';
 import 'package:movie_app/repository/RepositoryMovieData.dart';
 import 'package:movie_app/view/ItemView.dart';
-import 'package:paging/paging.dart';
+import 'package:pagination_view/pagination_view.dart';
 
 class ListItemViewFactory {
   static Widget widget({
@@ -49,35 +52,42 @@ class _InheritageListItemView extends InheritedWidget {
 
 class _ListItemView extends State<_MainListItemView> {
   Widget _futureBuilderListMovie(BuildContext context) {
-    final _InheritageListItemView param = _InheritageListItemView.of(context);
-
-    return FutureBuilder(
+    final param = _InheritageListItemView.of(context);
+    return FutureBuilder<ListMovieData>(
       future: RepositoryMovieData(param.client)
-          .fetchListMovieData(param.type,param.categories, 1),
+          .fetchListMovieData(param.type, param.categories, 1),
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.done:
             if (snapshot.hasData) {
-              return Center(
-                  child: Pagination<MovieData>(
-                      onError: (e) {
-                        print("$e");
-                      },
-                      scrollDirection: Axis.vertical,
-                      progress: LinearProgressIndicator(),
-                      pageBuilder: (curentPage) async {
-                        final data = await RepositoryMovieData(param.client)
-                            .fetchListMovieData(
-                                param.type, param.categories, curentPage + 1);
-                        return data.results;
-                      },
-                      itemBuilder: (index, data) {
-                        return ItemView(
-                          data,
-                          type: param.type,
-                          client: param.client,
-                        );
-                      }));
+              return PaginationView<MovieData>(
+                onLoading: LinearProgressIndicator(),
+                onError: (e) {
+                  print("$e");
+                  return Center(
+                    child: Text("Fail get data"),
+                  );
+                },
+                itemBuilder: (index, data) {
+                  return ItemView(
+                    data,
+                    type: param.type,
+                    client: param.client,
+                  );
+                },
+                onEmpty: Center(
+                  child: Icon(Icons.error_outline),
+                ),
+                pageFetch: (int currentListSize) async {
+                  if (currentListSize > 1){
+                    final data = await RepositoryMovieData(param.client)
+                        .fetchListMovieData(
+                            param.type, param.categories, currentListSize + 1);
+                  return data.results;
+                  }
+                  return (snapshot.data as ListMovieData).results;
+                },
+              );
             }
             continue nodata;
           nodata:

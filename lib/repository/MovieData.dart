@@ -352,7 +352,7 @@ class NextEpisodeToAir {
   String productionCode;
   int seasonNumber;
   int showId;
-  Null stillPath;
+  String stillPath;
   double voteAverage;
   int voteCount;
 

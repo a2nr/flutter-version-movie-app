@@ -93,7 +93,7 @@ class _ItemView {
     return Directionality(
         textDirection: TextDirection.ltr,
         child: Container(
-            constraints: BoxConstraints.tightFor(height: 300, width: 500),
+            constraints: BoxConstraints.tightFor(height: 320, width: 500),
             child: FlatButton(
               key: Key("Clickable_ItemView"),
               child: Card(
