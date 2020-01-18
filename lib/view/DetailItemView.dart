@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'package:movie_app/repository/MovieData.dart';
 import 'package:movie_app/repository/RepositoryMovieData.dart';
@@ -198,6 +199,27 @@ class _DetailItemView extends State<DetailItemView> {
   final Client _client;
   final String _type;
   final int _id;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.landscapeRight,
+      DeviceOrientation.landscapeLeft,
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]);
+  }
+
+  @override
+  dispose() {
+    if (MediaQuery.of(context).orientation != Orientation.portrait)
+      SystemChrome.setPreferredOrientations([
+        DeviceOrientation.landscapeRight,
+        DeviceOrientation.landscapeLeft,
+      ]);
+    super.dispose();
+  }
 
   _DetailItemView(this._type, this._id, this._client);
   Widget _loadingWidget(

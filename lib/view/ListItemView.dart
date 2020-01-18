@@ -1,10 +1,9 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:movie_app/repository/ListMovieData.dart';
 import 'package:movie_app/repository/MovieData.dart';
 import 'package:movie_app/repository/RepositoryMovieData.dart';
+import 'package:movie_app/view/DetailItemView.dart';
 import 'package:movie_app/view/ItemView.dart';
 import 'package:pagination_view/pagination_view.dart';
 
@@ -13,12 +12,15 @@ class ListItemViewFactory {
     @required type,
     @required categories,
     @required client,
+    isSliver = false,
   }) =>
       _InheritageListItemView(
         categories: categories,
         client: client,
         type: type,
-        child: _MainListItemView(),
+        child: _MainListItemView(
+          isSliver: isSliver,
+        ),
       );
 }
 
@@ -71,19 +73,25 @@ class _ListItemView extends State<_MainListItemView> {
                 itemBuilder: (index, data) {
                   return ItemView(
                     data,
-                    type: param.type,
-                    client: param.client,
+                    onClickCallback: (thisData) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => DetailItemView(
+                                param.type, thisData.id, param.client)),
+                      );
+                    },
                   );
                 },
                 onEmpty: Center(
                   child: Icon(Icons.error_outline),
                 ),
                 pageFetch: (int currentListSize) async {
-                  if (currentListSize > 1){
+                  if (currentListSize > 1) {
                     final data = await RepositoryMovieData(param.client)
                         .fetchListMovieData(
                             param.type, param.categories, currentListSize + 1);
-                  return data.results;
+                    return data.results;
                   }
                   return (snapshot.data as ListMovieData).results;
                 },
@@ -112,7 +120,90 @@ class _ListItemView extends State<_MainListItemView> {
   }
 }
 
-class _MainListItemView extends StatefulWidget {
+class _SliverListItemView extends State<_MainListItemView> {
+  int _page = 1;
+  bool _isNeedLoading = true;
+  List<MovieData> _cacheMovieData;
+
   @override
-  State<StatefulWidget> createState() => _ListItemView();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_cacheMovieData != null)
+      setState(() {
+        print("depdancies change");
+        _isNeedLoading = true;
+        _cacheMovieData.removeRange(0, _cacheMovieData.length);
+        _page = 1;
+      });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final _param = _InheritageListItemView.of(context);
+    final bool isPortrait = MediaQuery.of(context).orientation == Orientation.portrait ;
+    print("curent page: $_page");
+    return FutureBuilder(
+      future: RepositoryMovieData(_param.client)
+          .fetchListMovieData(_param.type, _param.categories, _page),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.done:
+            if (_cacheMovieData == null)
+              _cacheMovieData = (snapshot.data as ListMovieData).results;
+            else
+              _cacheMovieData.addAll((snapshot.data as ListMovieData).results);
+            _isNeedLoading = false;
+            break;
+          default:
+            _isNeedLoading = true;
+            break;
+        }
+        return SliverGrid(
+          delegate: SliverChildBuilderDelegate(
+            (context, i) {
+              if (_cacheMovieData != null) {
+                if ((i > (_cacheMovieData.length - 1)) && (_isNeedLoading))
+                  return ItemView.holder(context);
+                if (((i + 5) > (_cacheMovieData.length)) && (!_isNeedLoading))
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    setState(() {
+                      _isNeedLoading = true;
+                      _page++;
+                    });
+                  });
+                print("index: $i");
+                return ItemView(
+                  _cacheMovieData[i],
+                  onClickCallback: (data) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => DetailItemView(
+                              _param.type, data.id, _param.client)),
+                    );
+                  },
+                );
+              } else
+                return ItemView.holder(context);
+            },
+            childCount: _isNeedLoading ? null : _cacheMovieData.length,
+          ),
+          gridDelegate:
+              SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: isPortrait ? 1 : 2),
+        );
+      },
+    );
+  }
+}
+
+class _MainListItemView extends StatefulWidget {
+  final bool isSliver;
+
+  _MainListItemView({this.isSliver});
+
+  @override
+  State<StatefulWidget> createState() {
+    if (isSliver) return _SliverListItemView();
+    return _ListItemView();
+  }
 }

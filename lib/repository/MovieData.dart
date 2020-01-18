@@ -84,7 +84,7 @@ class MovieData {
       this.voteAverage,
       this.voteCount});
 
-  MovieData.fromJson(Map<String, dynamic> map){
+  MovieData.fromJson(Map<String, dynamic> map) {
     adult = map['adult'];
     backdropPath = map['backdrop_path'];
     if (map['created_by'] != null) {
@@ -93,7 +93,9 @@ class MovieData {
         createdBy.add(new CreatedBy.fromJson(v));
       });
     }
-    episodeRunTime = map['episode_run_time']!=null?map['episode_run_time'].cast<int>():null;
+    episodeRunTime = map['episode_run_time'] != null
+        ? map['episode_run_time'].cast<int>()
+        : null;
     firstAirDate = map['first_air_date'];
     belongsToCollection = map['belongs_to_collection'] != null
         ? new BelongsToCollection.fromJson(map['belongs_to_collection'])
@@ -108,7 +110,8 @@ class MovieData {
     homepage = map['homepage'];
     id = map['id'];
     inProduction = map['in_production'];
-    languages = map['languages']!=null?map['languages'].cast<String>():null;
+    languages =
+        map['languages'] != null ? map['languages'].cast<String>() : null;
     lastAirDate = map['last_air_date'];
     lastEpisodeToAir = map['last_episode_to_air'] != null
         ? new LastEpisodeToAir.fromJson(map['last_episode_to_air'])
@@ -125,7 +128,9 @@ class MovieData {
     }
     numberOfEpisodes = map['number_of_episodes'];
     numberOfSeasons = map['number_of_seasons'];
-    originCountry = map['origin_country']!=null?map['origin_country'].cast<String>():null;
+    originCountry = map['origin_country'] != null
+        ? map['origin_country'].cast<String>()
+        : null;
     imdbId = map['imdb_id'];
     originalLanguage = map['original_language'];
     originalName = map['original_name'];
@@ -175,7 +180,7 @@ class MovieData {
     data['backdrop_path'] = this.backdropPath;
     if (this.createdBy != null) {
       data['created_by'] = this.createdBy.map((v) => v.toJson()).toList();
-    }    
+    }
     if (this.belongsToCollection != null) {
       data['belongs_to_collection'] = this.belongsToCollection.toJson();
     }
@@ -322,7 +327,7 @@ class LastEpisodeToAir {
     seasonNumber = map['season_number'];
     showId = map['show_id'];
     stillPath = map['still_path'];
-    voteAverage = map['vote_average']!=null? map['vote_average']:null;
+    voteAverage = map['vote_average'] != null ? map['vote_average'] : null;
     voteCount = map['vote_count'];
   }
 
@@ -465,6 +470,7 @@ class Seasons {
     return data;
   }
 }
+
 class BelongsToCollection {
   int id;
   String name;

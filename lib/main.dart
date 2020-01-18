@@ -11,6 +11,7 @@ class MovieMenu {
   final IconData icon;
 
   const MovieMenu._internal(this.type, this.title, this.icon);
+
   @override
   String toString() => "MovieMenu.$type";
 
@@ -28,6 +29,7 @@ class MyMovieApp extends StatefulWidget {
 class _MyMovieApp extends State<MyMovieApp> {
   // This widget is the root of your application.
   MovieMenu _curentMenu = MovieMenu.Movie;
+  bool isInSearch = false;
 
   // @override
   // void initState() {
@@ -71,18 +73,35 @@ class _MyMovieApp extends State<MyMovieApp> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-        title: 'Belajar Flutter',
-        home: Center(
-            child: Scaffold(
-                appBar: AppBar(
-                  title: Text(_curentMenu.title),
-                  leading: _buildMenu(),
-                ),
-                body: ListItemViewFactory.widget(
-                    type: _curentMenu.type,
-                    categories: CategoriesMovie.TRENDING,
-                    client: Client()))));
-  }
+  Widget build(BuildContext context) => MaterialApp(
+          home: Scaffold(
+              body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            title: Text(_curentMenu.title),
+            pinned: true,
+            elevation: 10,
+            leading: _buildMenu(),
+            actions: [
+              IconButton(
+                icon: Icon(Icons.search),
+                onPressed: () {
+                  setState(() {
+                    isInSearch = !isInSearch;
+                  });
+                },
+              ),
+              IconButton(
+                icon: Icon(Icons.more_vert),
+                onPressed: () {},
+              )
+            ],
+          ),
+          ListItemViewFactory.widget(
+              type: _curentMenu.type,
+              categories: CategoriesMovie.TRENDING,
+              client: Client(),
+              isSliver: true)
+        ],
+      )));
 }
